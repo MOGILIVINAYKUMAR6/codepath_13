@@ -2,21 +2,25 @@
 const menuToggle = document.querySelector('.menu-toggle');
 const navbarList = document.querySelector('.navbar-list');
 
-menuToggle.addEventListener('click', () => {
-    navbarList.classList.toggle('active');
-});
-
-// Close mobile menu when a link is clicked
-const navLinks = document.querySelectorAll('.navbar-list li a');
-navLinks.forEach(link => {
-    link.addEventListener('click', () => {
-        navbarList.classList.remove('active');
+if (menuToggle && navbarList) {
+    menuToggle.addEventListener('click', () => {
+        navbarList.classList.toggle('active');
     });
-});
+
+    // Close mobile menu when a link is clicked
+    const navLinks = navbarList.querySelectorAll('li a');
+    navLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            navbarList.classList.remove('active');
+        });
+    });
+}
 
 // Petition form handling
 const petitionForm = document.getElementById('petition-form');
 const signatureList = document.getElementById('signature-list');
+const signatureCount = document.getElementById('signature-count');
+let totalSignatures = 0;
 
 if (petitionForm) {
     petitionForm.addEventListener('submit', (event) => {
@@ -24,129 +28,52 @@ if (petitionForm) {
         
         const nameInput = document.getElementById('name');
         const emailInput = document.getElementById('email');
+        const cityInput = document.getElementById('city');
 
         let isValid = true;
 
-        // Simple validation checks for name and email
-        if (nameInput.value.trim() === '') {
-            nameInput.classList.add('invalid');
-            isValid = false;
-        } else {
-            nameInput.classList.remove('invalid');
-        }
+        // Validate inputs
+        isValid = validateInput(nameInput) && isValid;
+        isValid = validateEmail(emailInput) && isValid;
+        isValid = validateInput(cityInput) && isValid;
 
-        if (!emailInput.value.includes('@')) {
-            emailInput.classList.add('invalid');
-            isValid = false;
-        } else {
-            emailInput.classList.remove('invalid');
-        }
-
-        // Add valid signatures to the list
+        // Add valid signature to the list
         if (isValid && signatureList) {
             const listItem = document.createElement('li');
-            listItem.textContent = `${nameInput.value} - ${emailInput.value}`;
+            listItem.textContent = `${nameInput.value} - ${cityInput.value}`;
             signatureList.appendChild(listItem);
 
+            // Update signature count
+            if (signatureCount) {
+                totalSignatures++;
+                signatureCount.textContent = totalSignatures;
+            }
+
             // Clear form fields
-            nameInput.value = '';
-            emailInput.value = '';
+            petitionForm.reset();
         }
     });
 }
 
-// Contact form handling
-const contactForm = document.querySelector('.contact-form');
-if (contactForm) {
-    contactForm.addEventListener('submit', (event) => {
-        event.preventDefault();
-        // Add your contact form submission logic here
-        console.log('Contact form submitted');
-    });
-}
-// Add this to your existing script.js file
-
-const modeToggle = document.getElementById('mode-toggle');
-const body = document.body;
-
-modeToggle.addEventListener('click', () => {
-    body.classList.toggle('dark-mode');
-    updateModeToggle();
-});
-
-function updateModeToggle() {
-    const isDarkMode = body.classList.contains('dark-mode');
-    const icon = modeToggle.querySelector('i');
-    const text = modeToggle.querySelector('span');
-
-    if (isDarkMode) {
-        icon.classList.remove('fa-sun');
-        icon.classList.add('fa-moon');
-        text.textContent = 'Dark Mode';
+function validateInput(input) {
+    if (input.value.trim() === '') {
+        setInvalid(input);
+        return false;
     } else {
-        icon.classList.remove('fa-moon');
-        icon.classList.add('fa-sun');
-        text.textContent = 'Light Mode';
+        setValid(input);
+        return true;
     }
 }
 
-// Initialize the toggle button state
-updateModeToggle();
-
-// Add this to your existing script.js file
-
-const petitionForm = document.getElementById('petition-form');
-const signatureList = document.getElementById('signature-list');
-const signatureCount = document.getElementById('signature-count');
-let totalSignatures = 0;
-
-petitionForm.addEventListener('submit', (event) => {
-    event.preventDefault();
-    
-    const nameInput = document.getElementById('name');
-    const emailInput = document.getElementById('email');
-    const cityInput = document.getElementById('city');
-
-    let isValid = true;
-
-    // Validate name
-    if (nameInput.value.trim() === '') {
-        setInvalid(nameInput);
-        isValid = false;
+function validateEmail(input) {
+    if (!isValidEmail(input.value)) {
+        setInvalid(input);
+        return false;
     } else {
-        setValid(nameInput);
+        setValid(input);
+        return true;
     }
-
-    // Validate email
-    if (!isValidEmail(emailInput.value)) {
-        setInvalid(emailInput);
-        isValid = false;
-    } else {
-        setValid(emailInput);
-    }
-
-    // Validate city
-    if (cityInput.value.trim() === '') {
-        setInvalid(cityInput);
-        isValid = false;
-    } else {
-        setValid(cityInput);
-    }
-
-    // Add valid signature to the list
-    if (isValid) {
-        const listItem = document.createElement('li');
-        listItem.textContent = `${nameInput.value} - ${cityInput.value}`;
-        signatureList.appendChild(listItem);
-
-        // Update signature count
-        totalSignatures++;
-        signatureCount.textContent = totalSignatures;
-
-        // Clear form fields
-        petitionForm.reset();
-    }
-});
+}
 
 function setInvalid(input) {
     input.parentElement.classList.add('invalid');
@@ -159,4 +86,46 @@ function setValid(input) {
 function isValidEmail(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
+}
+
+// Contact form handling
+const contactForm = document.querySelector('.contact-form');
+if (contactForm) {
+    contactForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        // Add your contact form submission logic here
+        console.log('Contact form submitted');
+    });
+}
+
+// Mode toggle
+const modeToggle = document.getElementById('mode-toggle');
+const body = document.body;
+
+if (modeToggle && body) {
+    modeToggle.addEventListener('click', () => {
+        body.classList.toggle('dark-mode');
+        updateModeToggle();
+    });
+
+    function updateModeToggle() {
+        const isDarkMode = body.classList.contains('dark-mode');
+        const icon = modeToggle.querySelector('i');
+        const text = modeToggle.querySelector('span');
+
+        if (icon && text) {
+            if (isDarkMode) {
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+                text.textContent = 'Dark Mode';
+            } else {
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+                text.textContent = 'Light Mode';
+            }
+        }
+    }
+
+    // Initialize the toggle button state
+    updateModeToggle();
 }
